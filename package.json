@@ -1,0 +1,25 @@
+{
+  "name": "huigou",
+  "version": "1.0.0",
+  "description": "基于koa2、mongodb的网购平台。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jack-team/huigou-mall.git"
+  },
+  "keywords": [
+    "会购、koa2、mongodb、es6、es7"
+  ],
+  "author": "jacker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jack-team/huigou-mall/issues"
+  },
+  "homepage": "https://github.com/jack-team/huigou-mall#readme",
+  "dependencies": {
+    "koa": "^2.5.0"
+  }
+}
