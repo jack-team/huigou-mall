@@ -1,0 +1,11 @@
+{
+  "apps": [
+    {
+      "name": "huigou",
+      "cwd": "./",
+      "script": "shell/dev.sh",
+      "watch": true,
+      "ignore_watch":[".idea","pm2/dev.json","pm2/pro.json","pm2/db.json"]
+    }
+  ]
+}

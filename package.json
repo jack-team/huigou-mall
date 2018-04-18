@@ -4,7 +4,9 @@
   "description": "基于koa2、mongodb的网购平台。",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db":"pm2 start pm2/db.json",
+    "dev":"pm2 start pm2/dev.json",
+    "pro":"node app.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,10 @@
   },
   "homepage": "https://github.com/jack-team/huigou-mall#readme",
   "dependencies": {
-    "koa": "^2.5.0"
+    "koa": "^2.5.0",
+    "koa-body": "^2.5.0",
+    "koa-router": "^7.4.0",
+    "koa2-cors": "^2.0.5",
+    "mongoose":"^5.0.15"
   }
 }
