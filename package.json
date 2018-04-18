@@ -4,9 +4,9 @@
   "description": "基于koa2、mongodb的网购平台。",
   "main": "index.js",
   "scripts": {
-    "db":"pm2 start pm2/db.json",
-    "dev":"pm2 start pm2/dev.json",
-    "pro":"node app.js"
+    "db": "pm2 start pm2/db.json",
+    "dev": "pm2 start pm2/dev.json",
+    "pro": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "koa-body": "^2.5.0",
     "koa-router": "^7.4.0",
     "koa2-cors": "^2.0.5",
-    "mongoose":"^5.0.15"
+    "mongoose": "^5.0.15",
+    "uuid": "^3.2.1"
   }
 }

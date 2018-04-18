@@ -4,6 +4,8 @@ const trim = (str=``) => str.trim();
 
 const md5 = require('./../../../util/md5');
 
+const uuid = require('uuid');
+
 const signup = async ctx => {
     const { username, password } = ctx.request.body;
     
@@ -23,7 +25,7 @@ const signup = async ctx => {
             passWord:md5(password),
             nickname:`测试用户`,
             avatar:`http://static.yutao2012.com/c51aee10-42f4-11e8-ba26-db895b35ee3b.jpg`,
-            accessToken:`12sdd`
+            accessToken:uuid.v4()
         });
     
         try {
