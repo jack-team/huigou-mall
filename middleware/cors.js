@@ -1,7 +1,9 @@
 const cors = require('koa2-cors');
 
 module.exports = cors({
-    origin: ctx => `*`,
+    origin: ctx => {
+        return ctx.header.origin;
+    },
     maxAge: 5,
     credentials: true,
     allowMethods: [`GET`, `POST`, `DELETE`, `PUT`,`OPTIONS`],

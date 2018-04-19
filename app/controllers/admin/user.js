@@ -1,14 +1,16 @@
-var mongoose =  require('mongoose')
-var User = mongoose.model('User');
+const mongoose =  require('mongoose');
+const User = mongoose.model('User');
 const trim = (str=``) => str.trim();
 
 const md5 = require('./../../../util/md5');
 
 const uuid = require('uuid');
 
-const signup = async ctx => {
+//注册
+const signUp = async ctx => {
+
     const { username, password } = ctx.request.body;
-    
+
     const user = await User.findOne({
         userName: username
     }).exec();
@@ -41,18 +43,28 @@ const signup = async ctx => {
             }
         }
     }
-}
+};
 
-
-const login = async (ctx, next) => {
+//登录
+const signIn = async (ctx, next) => {
     const { username, password } = ctx.request.body;
+
+    const { userInfo } = ctx.session;
+
+    //如果会话信息信息中存在token
+    if(!!userInfo) {
+        return ctx.body = {
+            code: 500,
+            message: `用户已登录！`
+        }
+    }
 
     if (!trim(username) || !trim(password)) {
         return ctx.body = {
             code: 403,
             message: `用户名或密码不能为空！`
         }
-    };
+    }
     
     const user = await User.findOne({
         userName: username
@@ -76,13 +88,34 @@ const login = async (ctx, next) => {
 
     //密码正确
     else {
-        
+        ctx.saveSession(`userInfo`,user);
+        ctx.body = {
+            code:200,
+            data:ctx.getBaseUser(user),
+            message:`登录成功`
+        }     
     }
-
 };
 
+//登出
+const signOut = async ctx=> {
+
+    if(ctx.isLogin) {
+       ctx.saveSession(`userInfo`,{});
+       return ctx.body = {
+           code:200,
+           message:`退出成功！`
+       }
+    }
+
+    ctx.body = {
+        code:500,
+        message:`用户未登录`
+    }
+};
 
 module.exports = {
-    signup,
-    login
-}
+    signUp,
+    signIn,
+    signOut
+};

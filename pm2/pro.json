@@ -3,7 +3,7 @@
     {
       "name": "huigou",
       "cwd": "./",
-      "script": "app.js",
+      "script": "server.js",
       "watch": true,
       "ignore_watch":[".idea","pm2.dev.json"]
     }
