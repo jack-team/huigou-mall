@@ -49,10 +49,8 @@ const signUp = async ctx => {
 const signIn = async (ctx, next) => {
     const { username, password } = ctx.request.body;
 
-    const { userInfo } = ctx.session;
-
-    //如果会话信息信息中存在token
-    if(!!userInfo) {
+    //如果用户已登录
+    if(ctx.isLogin) {
         return ctx.body = {
             code: 500,
             message: `用户已登录！`
@@ -101,7 +99,7 @@ const signIn = async (ctx, next) => {
 const signOut = async ctx=> {
 
     if(ctx.isLogin) {
-       ctx.saveSession(`userInfo`,{});
+       ctx.saveSession(`userInfo`,undefined);
        return ctx.body = {
            code:200,
            message:`退出成功！`

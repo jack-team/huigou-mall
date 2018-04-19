@@ -26,7 +26,8 @@ app.use(session(app));
 
 
 app.use((ctx, next) => {
-    const {userInfo = {}} = ctx.session;
+
+    const { userInfo = {} } = ctx.session;
 
     //是否在登录状态
     ctx.isLogin = !!userInfo.accessToken;
