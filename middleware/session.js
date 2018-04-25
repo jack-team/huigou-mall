@@ -1,7 +1,7 @@
 const session = require('koa-session');
 
 const config = {
-    key: 'hg:sess',
+    key: 'HG:',
     maxAge: 86400000,
     overwrite: true,
     httpOnly: true,

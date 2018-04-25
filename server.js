@@ -25,40 +25,14 @@ const session = require('./middleware/session');
 app.use(session(app));
 
 
-app.use((ctx, next) => {
+//一些公共的方法
+const common = require('./middleware/common');
+app.use(common);
 
-    const { userInfo = {} } = ctx.session;
+//添加一些验证方法的中间件
 
-    //是否在登录状态
-    ctx.isLogin = !!userInfo.accessToken;
-
-    //存储session
-    if (!ctx.saveSession) {
-        ctx.saveSession = (key, value) => {
-            ctx.session[key] = value;
-        };
-    }
-
-    //获取用户基本信息，不包含密码
-    if (!ctx.getBaseUser) {
-        ctx.getBaseUser = user => {
-            const {
-                userName = null,
-                avatar = null,
-                accessToken = null,
-                nickname = null
-            } = user || userInfo;
-            return {
-                userName,
-                avatar,
-                accessToken,
-                nickname
-            }
-        }
-    }
-
-    return next();
-});
+const validator = require('./middleware/validator');
+app.use(validator);
 
 //配置模板引擎
 render(app, {

@@ -1,18 +1,17 @@
 const index = async ctx => {
-    const userInfo = ctx.getBaseUser();
+    const {methods , isLogin } = ctx;
+    const staticUrl = `http://localhost:8088/`;
+    const user = methods.baseUser();
     await ctx.render("admin", {
+        user:JSON.stringify({
+            ...user,
+            isLogin
+        }),
         static: {
-            css: [`http://localhost:8088/css/app.css`],
-            js: [
-                `http://localhost:8088/js/common.js`,
-                `http://localhost:8088/js/app.js`
-            ]
-        },
-        user: JSON.stringify({
-            ...userInfo,
-            isLogin:ctx.isLogin,
-            accessToken:undefined
-        })
+            staticUrl: staticUrl,
+            css: [`css/app.css`],
+            js: [`js/common.js`, `js/app.js`]
+        }
     })
 };
 
