@@ -15,7 +15,7 @@ router.post(`/user/signUp`, userControllers.signUp);
 /*登录接口*/
 router.post(`/user/signIn`, userControllers.signIn);
 /*退出登录接口*/
-router.post(`/user/signOut`, auth, userControllers.signOut);
+router.post(`/user/signOut`, userControllers.signOut);
 /*更新用户信息接口*/
 router.post(`/user/updateUser`, auth, userControllers.updateUser);
 /*修改密码*/
