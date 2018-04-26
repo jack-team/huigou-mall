@@ -3,15 +3,17 @@ const keys = obj => Object.keys(obj);
 const trim = (str = ``) => str.trim();
 
 const vailRules = {
-    required: value => {
-        value = trim(`${value}`);
+    required(value){
+        if (vailRules.string(value).result) {
+            value = trim(value);
+        }
         const result = (!!value || value === 0);
         return {
             result,
             message: 'must be a required！'
         };
     },
-    number: value => {
+    number(value){
         const type = typeof value;
         const result = (type.toLocaleUpperCase() === "NUMBER" || !isNaN(value));
         return {
@@ -19,7 +21,7 @@ const vailRules = {
             message: 'must be a Number！'
         };
     },
-    string: value => {
+    string(value){
         const type = typeof value;
         const result = type.toLocaleUpperCase() === "STRING";
         return {
@@ -27,7 +29,7 @@ const vailRules = {
             message: 'must be a String！'
         };
     },
-    length: (value, range = []) => {
+    length (value, range = []) {
         let result = false;
         const min = range[0] || 0,
             max = range[1];

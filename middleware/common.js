@@ -1,5 +1,3 @@
-const moment = require('moment');
-
 const methods = ctx => ({
     getPara() {
         const {request} = ctx;

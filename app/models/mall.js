@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const guid = require('./../../util/guid');
-const { Model } = require('./../help');
+const uuid = require('uuid');
+const {Model} = require('./../help');
+const formatTime = require('./../../util/formatTime');
+
 
 //商品分类模块
 const CategorySchema = new Schema({
@@ -43,35 +45,79 @@ Model.updateDate(CategorySchema);
 
 //数据方法
 CategorySchema.statics = {
-    async getItemByName (name) {
+    async getItemByName(name) {
         return await this.findOne({
             categoryName: name
         }).exec();
     },
+    //创建分类
     async createCategory(fields = {}) {
         fields = Object.assign({
-            categoryId:guid.create(),
-            _status:1,
-            subCategory:[]
-        },fields);
+            categoryId: uuid.v1(),
+            _status: 1,
+            subCategory: []
+        }, fields);
         const category = new this(fields);
         await category.save();
         return fields;
     },
-    async splitPage(start=1 , limit =0 ) {
-        return await this.find({
-            _index: {$gt: start - 1}
-        }, {
+    //分页
+    async splitPage(page = 1, limit = 0) {
+        const total = await this.count();
+        const start = total - (( page - 1 ) * limit);
+        const fields = {
             categoryName: true,
             categoryId: true,
             limit: true,
             subCategory: true,
-            _id: false
+            _id: false,
+            createAt: true,
+            _index:true
+        };
+        return await this.find({
+            _status: 1,
+            _index: {
+                $lt: start + 1
+            }
+        }, fields).sort({
+            _index:-1
         }).
-        limit(limit).sort({
-            _index: -1
-        }).
-        exec();
+        limit(limit).
+        exec().
+        then(queryList => {
+            return queryList.map(item => {
+                const obj = {};
+                const { createAt } = item;
+                Object.keys(fields).forEach(field => {
+                    if(fields[field]) obj[field] = item[field];
+                });
+                obj.createAt = formatTime(createAt);
+                return obj;
+            });
+        });
+    },
+
+    async updateCategory(id, update) {
+        const options = {
+            returnNewDocument: true
+        };
+        const query = {
+            categoryId: id,
+            _status: 1
+        };
+        update = {
+            $set: update
+        };
+        return await this.findOneAndUpdate(
+            query,
+            update,
+            options
+        ).exec().then(async function (Category) {
+            if (Category) {
+                return await Category.save();
+            }
+            throw '该分类已被删除！'
+        });
     }
 };
 
