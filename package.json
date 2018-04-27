@@ -6,7 +6,8 @@
   "scripts": {
     "db": "pm2 start pm2/db.json",
     "dev": "pm2 start pm2/dev.json",
-    "pro": "pm2 start pm2/pro.json"
+    "pro": "pm2 start pm2/pro.json",
+    "start":"node --inspect server.js"
   },
   "repository": {
     "type": "git",

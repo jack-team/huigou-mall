@@ -13,14 +13,16 @@ const Model = {
         }
     },
     updateDate: model => {
-        model.pre('save', function (next) {
+        const update = function(next){
             const now = Date.now();
             if (this.isNew) {
                 this.createAt = now;
             }
             this.updateAt = now;
             next();
-        });
+        };
+        model.pre('save', update);
+        model.pre('update', update);
     }
 };
 

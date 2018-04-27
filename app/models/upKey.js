@@ -20,15 +20,21 @@ const UpKeySchema = new Schema({
 Model.updateDate(UpKeySchema);
 
 UpKeySchema.statics = {
-    createKey: async function (id) {
+    async createKey (id) {
         const options = {
             new: true,
             upsert: true,
             returnNewDocument: true
         };
-        const { upIndex } = await this.findOneAndUpdate({ id }, {
-            $inc: {upIndex: 1}
-        }, options);
+        const { upIndex } = await this.findOneAndUpdate({id},
+            { $inc: { upIndex: 1 } }, options
+        );
+        return upIndex;
+    },
+    async getKey(id) {
+        const { upIndex } = await this.findOneAndUpdate({
+            id
+        });
         return upIndex;
     }
 };

@@ -70,13 +70,14 @@ exports.categoryAdd = async function (ctx) {
 *  获取分类列表
 *  page:number
 *  pageSize:number
+*  searchName:String
 */
 exports.categoryList = async function (ctx) {
     const {methods, validator} = ctx;
-
     let {
         page,
-        pageSize
+        pageSize,
+        searchName
     } = methods.getPara();
 
     const message = validator({
@@ -105,11 +106,20 @@ exports.categoryList = async function (ctx) {
 
     page = parseInt(page);
     pageSize = parseInt(pageSize);
+    searchName = searchName || '';
 
+    const searchKey = {
+        categoryName:{
+            $regex: new RegExp(searchName, 'i')
+        }
+    };
     try {
-        const total = await Category.count({_status:1});
+        const total = await Category.count({
+            _status:1,
+            ...searchKey
+        });
         const pageTotal = Math.ceil(total / pageSize);
-        const resultList = await Category.splitPage(page, pageSize);
+        const resultList = await Category.splitPage(page, pageSize,searchKey);
         ctx.body = methods.format({
             code: 200,
             data: {
@@ -169,18 +179,23 @@ exports.categoryEditor = async function (ctx) {
         });
     }
     try {
-        await Category.updateCategory(categoryId, {
+        const item = await Category.updateCategory(categoryId, {
             categoryName,
             limit
         });
         ctx.body = methods.format({
             code: 200,
+            data:item,
             message: `修改成功！`
         });
     } catch (err) {
+        let err_msg = err.errmsg;
+        switch (err.code) {
+            case 11000: err_msg = '已存在该分类名称！';break;
+        }
         return ctx.body = methods.format({
             code: 500,
-            message: `${err}`
+            message: `${err_msg}`
         });
     }
 };

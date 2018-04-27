@@ -54,7 +54,7 @@ AdminUserSchema.statics = {
     /*使用accessToken查找用户信息并更新用户信息*/
     async updateUser(accessToken, update) {
         const options = {
-            returnNewDocument: true
+            new: true
         };
         update = {
             $set: update
@@ -64,7 +64,9 @@ AdminUserSchema.statics = {
             update,
             options
         ).then(async function (user) {
-            return await user.save();
+            return await user.save({
+                new:true
+            });
         });
     },
 

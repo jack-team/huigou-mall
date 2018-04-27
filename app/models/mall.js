@@ -4,7 +4,6 @@ const uuid = require('uuid');
 const {Model} = require('./../help');
 const formatTime = require('./../../util/formatTime');
 
-
 //商品分类模块
 const CategorySchema = new Schema({
     //分类名称
@@ -43,6 +42,30 @@ const CategorySchema = new Schema({
 //更新时间
 Model.updateDate(CategorySchema);
 
+//结果返回的字段
+const resultFields = {
+    categoryName: true,
+    categoryId: true,
+    limit: true,
+    subCategory: true,
+    _id: false,
+    createAt: true,
+    updateAt: true
+};
+
+const formatItem = item => {
+    const format = {};
+    const {createAt, updateAt} = item;
+    Object.keys(resultFields).forEach(field => {
+        if (resultFields[field]) {
+            format[field] = item[field];
+        }
+    });
+    format.createAt = formatTime(createAt);
+    format.updateAt = formatTime(updateAt);
+    return format;
+};
+
 //数据方法
 CategorySchema.statics = {
     async getItemByName(name) {
@@ -50,6 +73,7 @@ CategorySchema.statics = {
             categoryName: name
         }).exec();
     },
+
     //创建分类
     async createCategory(fields = {}) {
         fields = Object.assign({
@@ -61,63 +85,57 @@ CategorySchema.statics = {
         await category.save();
         return fields;
     },
+
     //分页
-    async splitPage(page = 1, limit = 0) {
-        const total = await this.count();
-        const start = total - (( page - 1 ) * limit);
-        const fields = {
-            categoryName: true,
-            categoryId: true,
-            limit: true,
-            subCategory: true,
-            _id: false,
-            createAt: true,
-            _index:true
-        };
-        return await this.find({
+    async splitPage(page = 1, limit = 0, keyword) {
+        const total = await this.model('UpKey').getKey('mallCategory');
+        const start = total - ((page - 1) * limit);
+        const filter = {
             _status: 1,
             _index: {
                 $lt: start + 1
-            }
-        }, fields).sort({
-            _index:-1
-        }).
-        limit(limit).
-        exec().
-        then(queryList => {
-            return queryList.map(item => {
-                const obj = {};
-                const { createAt } = item;
-                Object.keys(fields).forEach(field => {
-                    if(fields[field]) obj[field] = item[field];
-                });
-                obj.createAt = formatTime(createAt);
-                return obj;
-            });
+            },
+            ...keyword
+        };
+        return await this.find(
+            filter,
+            resultFields
+        ).sort({
+            _index: -1
+        }).limit(limit).exec().then(queryList => {
+            return queryList.map(item =>
+                formatItem(item)
+            );
         });
     },
 
+    //更新
     async updateCategory(id, update) {
         const options = {
-            returnNewDocument: true
+            new:true
         };
+
         const query = {
-            categoryId: id,
-            _status: 1
+            _status: 1,
+            categoryId: id
         };
-        update = {
+
+        const updateOpts = {
             $set: update
         };
-        return await this.findOneAndUpdate(
+
+        const category = await this.findOneAndUpdate(
             query,
-            update,
+            updateOpts,
             options
-        ).exec().then(async function (Category) {
-            if (Category) {
-                return await Category.save();
-            }
-            throw '该分类已被删除！'
-        });
+        );
+
+        if (category) {
+            return formatItem(await category.save({
+                new:true
+            }));
+        }
+        throw '该分类已被删除！'
     }
 };
 
