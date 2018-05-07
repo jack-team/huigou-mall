@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const walk = modelPath => {
+const walk = (modelPath, blackList = []) => {
     fs.readdirSync(modelPath).forEach(file => {
-        const filePath = path.join(modelPath, '/' + file);
+        const filePath = path.join(modelPath, `/${file}`);
         const stat = fs.statSync(filePath);
-        if (stat.isFile()) {
+        const fileIndex = blackList.findIndex(fileName => `${fileName}.js` === file);
+        if (stat.isFile() && fileIndex < 0) {
             if (/(.*)\.(js|coffee)/.test(file)) {
                 require(filePath);
             }

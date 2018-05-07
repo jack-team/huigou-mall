@@ -1,9 +1,11 @@
 const methods = ctx => ({
+
     getPara() {
         const {request} = ctx;
         const {method, body, query} = request;
         return method === `POST` ? body : query;
     },
+
     format(body) {
         return Object.assign({
             code: 200,
@@ -11,21 +13,27 @@ const methods = ctx => ({
             message: ''
         }, body);
     },
+
     save(key, value) {
         ctx.session[key] = value;
         return ctx.session;
     },
+
     //将user信息存入会话中
     saveUser(user) {
         this.save('userInfo', user);
         return this.baseUser();
     },
+
     //删除会话中的user信息
     deleteUser() {
         ctx.session[`userInfo`] = undefined;
     },
+
     baseUser() {
-        const { userInfo = {} } = ctx.session;
+        const {
+            userInfo = {}
+        } = ctx.session;
         let {
             userName = null,
             avatar = null,

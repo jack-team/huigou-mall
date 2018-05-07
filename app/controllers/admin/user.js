@@ -21,8 +21,11 @@ const vailPara = (ctx, para) => {
 *  userName:string
 *  passWord:string
 */
+
 exports.signUp = async function (ctx) {
-    const {methods} = ctx;
+    const {
+        methods
+    } = ctx;
 
     const {
         userName,
@@ -35,34 +38,39 @@ exports.signUp = async function (ctx) {
         passWord
     });
 
-    //返回错误
+    //验证字段
     if (!!message) {
-        return ctx.body = methods.format({
-            code: 500,
-            message: message
-        })
+        return ctx.body = (
+            methods.format({
+                code: 500,
+                message: message
+            })
+        )
     }
 
     try {
-        const user = await AdminUser.getUserByUserName(userName);
+        const user = (
+            await AdminUser.getUserByName(userName)
+        );
         if (!!user) {
-            return ctx.body = methods.format({
-                code: 500,
-                message: '用户名已存在！'
-            });
+            return ctx.body = (
+                methods.format({
+                    code: 500,
+                    message: '用户名已存在！'
+                })
+            );
         }
-
         //创建新用户 默认不为管理员权限
         await AdminUser.createUser({
             userName: userName,
             passWord: md5(passWord)
         });
-
-        return ctx.body = methods.format({
-            code: 200,
-            message: '注册成功！'
-        });
-
+        return ctx.body = (
+            methods.format({
+                code: 200,
+                message: '注册成功！'
+            })
+        );
     }
     catch (err) {
         return ctx.body = methods.format({
@@ -71,7 +79,6 @@ exports.signUp = async function (ctx) {
         })
     }
 };
-
 
 /*
 *  用户登录
@@ -93,44 +100,54 @@ exports.signIn = async function (ctx) {
 
     //返回错误
     if (!!message) {
-        return ctx.body = methods.format({
-            code: 500,
-            message: message
-        })
+        return ctx.body = (
+            methods.format({
+                code: 500,
+                message: message
+            })
+        )
     }
 
     try {
         const loginUser = (
-            await AdminUser.getUserByUserName(userName)
+            await AdminUser.getUserByName(userName)
         );
 
         if (!loginUser) {
-            return ctx.body = methods.format({
-                code: 500,
-                message: `用户名不存在！`
-            })
+            return ctx.body = (
+                methods.format({
+                    code: 500,
+                    message: `用户名不存在！`
+                })
+            )
         }
 
         //验证密码
         if (md5(passWord) !== loginUser.passWord) {
-            return ctx.body = methods.format({
-                code: 500,
-                message: `密码错误！`
-            })
+            return ctx.body = (
+                methods.format({
+                    code: 500,
+                    message: `密码错误！`
+                })
+            )
         }
         //将用户存入会话
         const userInfo = methods.saveUser(loginUser);
-        return ctx.body = methods.format({
-            code: 200,
-            data: userInfo,
-            message: `登录成功！`
-        });
+        return ctx.body = (
+            methods.format({
+                code: 200,
+                data: userInfo,
+                message: `登录成功！`
+            })
+        )
     }
     catch (err) {
-        return ctx.body = methods.format({
-            code: 500,
-            message: `${err}`
-        });
+        return ctx.body = (
+            methods.format({
+                code: 500,
+                message: `${err}`
+            })
+        )
     }
 };
 
@@ -141,10 +158,12 @@ exports.signIn = async function (ctx) {
 exports.signOut = async function (ctx) {
     const {methods} = ctx;
     methods.deleteUser();
-    return ctx.body = methods.format({
-        code: 200,
-        message: `退出成功！`
-    });
+    return ctx.body = (
+        methods.format({
+            code: 200,
+            message: `退出成功！`
+        })
+    )
 };
 
 
@@ -178,10 +197,12 @@ exports.updateUser = async function (ctx) {
     });
 
     if (!!message) {
-        return ctx.body = methods.format({
-            code: 500,
-            message
-        });
+        return ctx.body = (
+            methods.format({
+                code: 500,
+                message
+            })
+        )
     }
 
     const {
@@ -194,19 +215,25 @@ exports.updateUser = async function (ctx) {
     };
 
     try {
-        const updateUser = await AdminUser.updateUser(accessToken, update);
+        const updateUser = (
+            await AdminUser.updateUser(accessToken, update)
+        );
         const userInfo = methods.saveUser(updateUser);
-        ctx.body = {
-            code: 200,
-            data: userInfo,
-            message: '更新成功！'
-        }
+        ctx.body = (
+            methods.format({
+                code: 200,
+                data: userInfo,
+                message: '更新成功！'
+            })
+        )
     }
     catch (err) {
-        ctx.body = methods.format({
-            code: 500,
-            message: `${err}`
-        })
+        ctx.body = (
+            methods.format({
+                code: 500,
+                message: `${err}`
+            })
+        )
     }
 };
 
@@ -240,33 +267,43 @@ exports.updatePassword = async function (ctx) {
     } = methods.baseUser();
 
     try {
-        const user = await AdminUser.getUserByAccessToken(accessToken);
+        const user = (
+            await AdminUser.getUserByToken(accessToken)
+        );
         if (md5(oldPassword) !== user.passWord) {
-            return ctx.body = methods.format({
-                code: 500,
-                message: '密码错误！'
-            });
+            return ctx.body = (
+                methods.format({
+                    code: 500,
+                    message: '密码错误！'
+                })
+            )
         }
 
         if (oldPassword === newPassword) {
-            return ctx.body = methods.format({
-                code: 500,
-                message: '新旧密码不能相同！'
-            });
+            return ctx.body = (
+                methods.format({
+                    code: 500,
+                    message: '新旧密码不能相同！'
+                })
+            );
         }
         user.passWord = md5(newPassword);
         await user.save();
-        ctx.body = methods.format({
-            code: 200,
-            message: `修改成功！`
-        });
+        ctx.body = (
+            methods.format({
+                code: 200,
+                message: `修改成功！`
+            })
+        );
     }
 
     catch (err) {
-        ctx.body = methods.format({
-            code: 500,
-            message: `${err}`
-        });
+        ctx.body = (
+            methods.format({
+                code: 500,
+                message: `${err}`
+            })
+        );
     }
 };
 

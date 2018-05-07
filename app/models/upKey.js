@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
-const {Model} = require('./../help');
+const plugin = require('./plugin');
 
 const UpKeySchema = new Schema({
     //自增索引
@@ -13,13 +13,21 @@ const UpKeySchema = new Schema({
         type: String,
         unique: true
     },
-    ...Model.fields
+    //创建时间
+    createAt: {
+        type: Date,
+        default: Date.now()
+    },
+    //更新时间
+    updateAt: {
+        type: Date,
+        default: Date.now()
+    }
 });
 
-//更新时间
-Model.updateDate(UpKeySchema);
+UpKeySchema.plugin(plugin);
 
-UpKeySchema.statics = {
+UpKeySchema.statics.setMethods({
     async createKey (id) {
         const options = {
             new: true,
@@ -32,12 +40,10 @@ UpKeySchema.statics = {
         return upIndex;
     },
     async getKey(id) {
-        const { upIndex } = await this.findOneAndUpdate({
-            id
-        });
+        const { upIndex } = await this.findOne({id});
         return upIndex;
     }
-};
+});
 
 mongoose.model('UpKey', UpKeySchema);
 

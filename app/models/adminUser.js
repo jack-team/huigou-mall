@@ -1,7 +1,7 @@
+const uuid = require('uuid');
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const {Model} = require('./../help');
-const uuid = require('uuid');
+const plugin = require('./plugin');
 
 //用户模块
 const AdminUserSchema = new Schema({
@@ -18,39 +18,44 @@ const AdminUserSchema = new Schema({
     passWord: String,
     //昵称
     nickname: String,
-    //最近一次登录时间
     //是否是管理员
     isAdmin: {
         type: Boolean,
         default: false
     },
+    //最近一次登录时间
     loginAt: {
         type: Date,
         default: Date.now()
     },
-    ...Model.fields
+    //创建时间
+    createAt: {
+        type: Date,
+        default: Date.now()
+    },
+    //更新时间
+    updateAt: {
+        type: Date,
+        default: Date.now()
+    }
 });
 
-//更新时间
-Model.updateDate(AdminUserSchema);
+AdminUserSchema.plugin(plugin);
 
 //静态方法
-AdminUserSchema.statics = {
-
+AdminUserSchema.statics.setMethods({
     /*使用userName查找用户信息*/
-    async getUserByUserName(userName) {
+    async getUserByName(name) {
         return await this.findOne({
-            userName: userName
+            userName: name
         }).exec();
     },
-
     /*使用accessToken查找用户信息*/
-    async getUserByAccessToken(accessToken) {
+    async getUserByToken(accessToken) {
         return await this.findOne({
             accessToken: accessToken
         }).exec();
     },
-
     /*使用accessToken查找用户信息并更新用户信息*/
     async updateUser(accessToken, update) {
         const options = {
@@ -63,13 +68,8 @@ AdminUserSchema.statics = {
             {accessToken},
             update,
             options
-        ).then(async function (user) {
-            return await user.save({
-                new:true
-            });
-        });
+        );
     },
-
     /*创建新用户*/
     async createUser(fields) {
         const defaultFields = {
@@ -84,7 +84,7 @@ AdminUserSchema.statics = {
         ));
         return await user.save();
     }
-};
+});
 
 mongoose.model('AdminUser', AdminUserSchema);
 

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const uuid = require('uuid');
 const {Model} = require('./../help');
-const formatTime = require('./../../util/formatTime');
+const plugin = require('./plugin');
 
 //商品分类模块
 const CategorySchema = new Schema({
@@ -36,11 +36,19 @@ const CategorySchema = new Schema({
         type: Number,
         default: 1
     },
-    ...Model.fields
+    //创建时间
+    createAt: {
+        type: Date,
+        default: Date.now()
+    },
+    //更新时间
+    updateAt: {
+        type: Date,
+        default: Date.now()
+    }
 });
 
-//更新时间
-Model.updateDate(CategorySchema);
+CategorySchema.plugin(plugin);
 
 //结果返回的字段
 const resultFields = {
@@ -53,92 +61,166 @@ const resultFields = {
     updateAt: true
 };
 
-const formatItem = item => {
-    const format = {};
-    const {createAt, updateAt} = item;
-    Object.keys(resultFields).forEach(field => {
-        if (resultFields[field]) {
-            format[field] = item[field];
-        }
-    });
-    format.createAt = formatTime(createAt);
-    format.updateAt = formatTime(updateAt);
-    return format;
-};
-
 //数据方法
-CategorySchema.statics = {
+CategorySchema.statics.setMethods({
+
+    //通过 categoryName 获取用户
     async getItemByName(name) {
         return await this.findOne({
             categoryName: name
         }).exec();
     },
 
+    //通过categoryId 查询
+    async getItemById(categoryId) {
+        return await this.findOne({
+            categoryId: categoryId
+        }, resultFields).exec();
+    },
+
     //创建分类
     async createCategory(fields = {}) {
-        fields = Object.assign({
-            categoryId: uuid.v1(),
-            _status: 1,
-            subCategory: []
-        }, fields);
-        const category = new this(fields);
-        await category.save();
-        return fields;
+        const category = new this(
+            Object.assign({
+                categoryId: uuid.v1(),
+                _status: 1,
+                subCategory: []
+            }, fields),
+        );
+        return await category.save().then(Model.output);
     },
 
     //分页
-    async splitPage(page = 1, limit = 0, keyword) {
-        const total = await this.model('UpKey').getKey('mallCategory');
-        const start = total - ((page - 1) * limit);
+    async splitPage( page = 1, limit = 0, keyword ) {
         const filter = {
-            _status: 1,
-            _index: {
-                $lt: start + 1
-            },
-            ...keyword
+            ...keyword,
+            _status: 1
         };
+        const skipNum = (page-1) * limit;
         return await this.find(
             filter,
             resultFields
-        ).sort({
+        ).skip(skipNum).sort({
             _index: -1
-        }).limit(limit).exec().then(queryList => {
-            return queryList.map(item =>
-                formatItem(item)
-            );
-        });
+        }).limit(limit).exec().then(Model.output);
     },
 
     //更新
     async updateCategory(id, update) {
         const options = {
-            new:true
+            new: true,
+            projection: resultFields
         };
-
-        const query = {
-            _status: 1,
-            categoryId: id
-        };
-
-        const updateOpts = {
-            $set: update
-        };
-
+        const query = {_status: 1, categoryId: id};
+        const updateOpts = {$set: update};
         const category = await this.findOneAndUpdate(
             query,
             updateOpts,
             options
-        );
-
-        if (category) {
-            return formatItem(await category.save({
-                new:true
-            }));
-        }
+        ).exec().then(Model.output);
+        if (category) return category;
         throw '该分类已被删除！'
     }
-};
+
+});
 
 mongoose.model('MallCategory', CategorySchema);
+
+
 //-------------------------------------------华丽的分割线-----------------------------------------------
+/*商品列表模块*/
+const GoodSchema = new Schema({
+    //分类id
+    categoryId: {
+        type: String
+    },
+    //商品名称
+    goodsName: {
+        type: String
+    },
+    //商品Id
+    goodsId:{
+        type: String,
+        unique: true
+    },
+    //商品价格
+    price: {
+        type: Number
+    },
+    //商品库存
+    stock: {
+        type: Number
+    },
+    //上架时间
+    liveStart: {
+        type: Date
+    },
+    //下架时间
+    liveEnd: {
+        type: Date
+    },
+    //封面图片
+    cover: {
+        type: String
+    },
+    //banner图片
+    banners: {
+        type: Array
+    },
+    //详情
+    desc: {
+        type: String
+    },
+    //索引
+    _index: {
+        type: Number,
+        default: 0
+    },
+    //这条数据的状态，1为正常，0为删除
+    _status: {
+        type: Number,
+        default: 1
+    },
+    //创建时间
+    createAt: {
+        type: Date,
+        default: Date.now()
+    },
+    //更新时间
+    updateAt: {
+        type: Date,
+        default: Date.now()
+    }
+});
+
+
+GoodSchema.plugin(plugin);
+
+GoodSchema.statics.setMethods({
+    //创建商品
+    async createGoods(categoryId , fields = {}) {
+        const onlyIndex = await this.model('UpKey').createKey('mallGoods');
+        const goods = new this({
+            categoryId:categoryId,
+            goodsName:fields.goodsName,
+            price:fields.price,
+            stock:fields.stock,
+            liveStart:fields.liveStart,
+            liveEnd:fields.liveEnd,
+            cover:fields.cover,
+            banners:fields.banners,
+            desc:fields.desc,
+            _index:onlyIndex,
+            _status: 1
+        });
+        return await goods.save().then(Model.output);
+    }
+
+    //分页
+    
+
+});
+
+mongoose.model('MallGoods', GoodSchema);
+
 

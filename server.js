@@ -5,14 +5,15 @@ const render = require('koa-ejs');
 
 const app = new Koa();
 
-app.keys = ['some secret hurr'];
+app.keys = [`HUI GOU KEY`];
 
 //连接数据库
 require('./config/db.connect');
 
 //载入数据模型
-const models = path.join(__dirname, '/app/models');
-require('./util/walk')(models);
+require('./util/walk')(path.join(__dirname, '/app/models'), [
+    'plugin'
+]);
 
 app.use(koaBody());
 
@@ -24,13 +25,11 @@ app.use(cors);
 const session = require('./middleware/session');
 app.use(session(app));
 
-
 //一些公共的方法
 const common = require('./middleware/common');
 app.use(common);
 
 //添加一些验证方法的中间件
-
 const validator = require('./middleware/validator');
 app.use(validator);
 

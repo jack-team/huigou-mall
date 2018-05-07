@@ -33,6 +33,9 @@ router.get(`/mall/category/list`, auth, mallController.categoryList);
 router.post(`/mall/category/editor`, auth, mallController.categoryEditor);
 /*删除分类接口*/
 router.post(`/mall/category/delete`, auth, mallController.categoryDelete);
+/*添加商品接口*/
+router.post(`/mall/goods/add`,auth,mallController.goodsAdd);
+
 
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Category = mongoose.model('MallCategory');
+const MallGoods = mongoose.model('MallGoods');
 const UpKey = mongoose.model('UpKey');
 
 /*
@@ -8,7 +9,7 @@ const UpKey = mongoose.model('UpKey');
 *  limit:int
 */
 exports.categoryAdd = async function (ctx) {
-    const {methods, validator} = ctx;
+    const { methods, validator } = ctx;
     const {
         categoryName,
         limit
@@ -107,19 +108,18 @@ exports.categoryList = async function (ctx) {
     page = parseInt(page);
     pageSize = parseInt(pageSize);
     searchName = searchName || '';
-
     const searchKey = {
-        categoryName:{
+        categoryName: {
             $regex: new RegExp(searchName, 'i')
         }
     };
     try {
         const total = await Category.count({
-            _status:1,
+            _status: 1,
             ...searchKey
         });
         const pageTotal = Math.ceil(total / pageSize);
-        const resultList = await Category.splitPage(page, pageSize,searchKey);
+        const resultList = await Category.splitPage(page, pageSize, searchKey);
         ctx.body = methods.format({
             code: 200,
             data: {
@@ -185,13 +185,15 @@ exports.categoryEditor = async function (ctx) {
         });
         ctx.body = methods.format({
             code: 200,
-            data:item,
+            data: item,
             message: `修改成功！`
         });
     } catch (err) {
         let err_msg = err.errmsg;
         switch (err.code) {
-            case 11000: err_msg = '已存在该分类名称！';break;
+            case 11000:
+                err_msg = '已存在该分类名称！';
+                break;
         }
         return ctx.body = methods.format({
             code: 500,
@@ -206,20 +208,20 @@ exports.categoryEditor = async function (ctx) {
 *  categoryId:string
 */
 exports.categoryDelete = async function (ctx) {
-    const { methods, validator } = ctx;
+    const {methods, validator} = ctx;
     let {
         categoryId
     } = methods.getPara();
 
     const message = validator({
-        categoryId:{
-            value:categoryId,
-            rule:{
-                required:true
+        categoryId: {
+            value: categoryId,
+            rule: {
+                required: true
             }
         }
     });
-    if(!!message) {
+    if (!!message) {
         return ctx.body = methods.format({
             code: 500,
             message
@@ -227,7 +229,7 @@ exports.categoryDelete = async function (ctx) {
     }
     try {
         await Category.updateCategory(categoryId, {
-            _status:0
+            _status: 0
         });
         ctx.body = methods.format({
             code: 200,
@@ -239,4 +241,176 @@ exports.categoryDelete = async function (ctx) {
             message: `${err}`
         });
     }
+};
+
+/*
+*  添加商品
+*  categoryId string
+*  goodsName string
+*  price number
+*  stock number
+*  liveStart Date
+*  liveEnd Date
+*  cover string
+*  banners array
+*  desc string
+*/
+
+exports.goodsAdd = async function ( ctx ) {
+    const {
+        methods,
+        validator
+    } = ctx;
+    const {
+        categoryId,
+        goodsName,
+        price,
+        stock,
+        liveStart,
+        liveEnd,
+        cover,
+        banners,
+        desc
+    } = methods.getPara();
+
+    const message = validator({
+        categoryId:{
+            value:categoryId,
+            rule:{
+                required:true
+            }
+        },
+        goodsName:{
+            value:goodsName,
+            rule:{
+                required:true
+            }
+        },
+        price:{
+            value:price,
+            rule:{
+                required:true,
+                number:true
+            }
+        },
+        stock:{
+            value:stock,
+            rule:{
+                required:true,
+                number:true
+            }
+        },
+        liveStart:{
+            value:liveStart,
+            rule:{
+                required:true,
+                isDate:true
+            }
+        },
+        liveEnd:{
+            value:liveEnd,
+            rule:{
+                required:true,
+                isDate:true
+            }
+        },
+        cover:{
+            value:cover,
+            rule:{
+                required:true
+            }
+        },
+        banners:{
+            value:banners,
+            rule:{
+                required:true
+            }
+        },
+        desc:{
+            value:desc,
+            rule:{
+                required:true
+            }
+        }
+    });
+    if(!!message) {
+        return ctx.body = methods.format({
+            code:500,
+            message:message
+        })
+    }
+    try {
+        await MallGoods.createGoods(categoryId,{
+            goodsName,
+            price,
+            stock,
+            liveStart,
+            liveEnd,
+            cover,
+            banners,
+            desc
+        });
+        return ctx.body = methods.format({
+            code:200,
+            message:'保存成功！'
+        })
+    }
+    catch (e) {
+        return ctx.body = methods.format({
+            code:500,
+            message:`${e}`
+        })
+    }
+};
+
+/*
+*  获取商品列表
+*  page number
+*  pageSize number
+*  keyWords string
+*/
+
+exports.goodsList = ctx => {
+    const {
+        methods,
+        validator
+    } = ctx;
+    const {
+       page,
+       pageSize,
+       keyWords
+    } = methods.getPara();
+
+    const message = validator({
+        page:{
+            value:page,
+            rule:{
+                required:true,
+                number:true
+            }
+        },
+        pageSize:{
+            value:pageSize,
+            rule:{
+                required:true,
+                number:true
+            }
+        },
+        keyWords:{
+            value:keyWords,
+            rule:{
+                required:true
+            }
+        }
+    });
+
+    if(!!message) {
+        ctx.body =  methods.format({
+            code:500,
+            message:message
+        })
+    }
+
+
+
 };

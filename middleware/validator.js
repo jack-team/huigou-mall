@@ -1,8 +1,10 @@
 const baseValidator = require('validator');
 const keys = obj => Object.keys(obj);
 const trim = (str = ``) => str.trim();
+const moment = require('moment');
 
 const vailRules = {
+    //验证为空
     required(value){
         if (vailRules.string(value).result) {
             value = trim(value);
@@ -13,6 +15,7 @@ const vailRules = {
             message: 'must be a required！'
         };
     },
+    //验证为数字
     number(value){
         const type = typeof value;
         const result = (type.toLocaleUpperCase() === "NUMBER" || !isNaN(value));
@@ -21,6 +24,7 @@ const vailRules = {
             message: 'must be a Number！'
         };
     },
+    //验证为字符串
     string(value){
         const type = typeof value;
         const result = type.toLocaleUpperCase() === "STRING";
@@ -45,6 +49,27 @@ const vailRules = {
             result,
             message
         }
+    },
+    isArray(value){
+        return Array.isArray(value)
+    },
+    object(value){
+        let result = false;
+        if(!vailRules.isArray(value)) {
+            const type = typeof value;
+            result =  type.toLocaleUpperCase() === "OBJECT";
+        }
+        return {
+            result,
+            message:`must be a object！`
+        };
+    },
+    isDate(value){
+        const result = moment(value).isValid();
+        return {
+            result,
+            message:`must be a object！`
+        };
     }
 };
 
