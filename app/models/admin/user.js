@@ -1,10 +1,8 @@
 const uuid = require('uuid');
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const plugin = require('./plugin');
+const createModel = require('../../../util/createModel');
 
-//用户模块
-const AdminUserSchema = new Schema({
+const UserModel = createModel({
     //用户名
     userName: {
         unique: true,
@@ -13,7 +11,10 @@ const AdminUserSchema = new Schema({
     //头像
     avatar: String,
     //令牌
-    accessToken: String,
+    accessToken:  {
+        unique: true,
+        type: String
+    },
     //密码
     passWord: String,
     //昵称
@@ -27,23 +28,11 @@ const AdminUserSchema = new Schema({
     loginAt: {
         type: Date,
         default: Date.now()
-    },
-    //创建时间
-    createAt: {
-        type: Date,
-        default: Date.now()
-    },
-    //更新时间
-    updateAt: {
-        type: Date,
-        default: Date.now()
     }
 });
 
-AdminUserSchema.plugin(plugin);
-
 //静态方法
-AdminUserSchema.statics.setMethods({
+UserModel.statics.setMethods({
     /*使用userName查找用户信息*/
     async getUserByName(name) {
         return await this.findOne({
@@ -86,6 +75,6 @@ AdminUserSchema.statics.setMethods({
     }
 });
 
-mongoose.model('AdminUser', AdminUserSchema);
+mongoose.model('AdminUser', UserModel);
 
 

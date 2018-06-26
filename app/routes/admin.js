@@ -2,16 +2,14 @@ const Router = require('koa-router');
 const router = new Router();
 const auth = require('./../../middleware/auth');
 
-const homeControllers = require('./../controllers/admin/home');
-const userControllers = require('./../controllers/admin/user');
-const mallController = require('./../controllers/admin/mall');
-
 
 //--------------------------admin首页------------------------------
-router.get(`/`, homeControllers.index);
+const homeControllers = require('./../controllers/admin/home');
+router.get([`/site`,`/site/*`], homeControllers.index);
 
 
 //---------------------------user---------------------------------
+const userControllers = require('./../controllers/admin/user');
 /*注册接口*/
 router.post(`/user/signUp`, userControllers.signUp);
 /*登录接口*/
@@ -25,6 +23,8 @@ router.post(`/user/updatePassword`, auth, userControllers.updatePassword);
 
 
 //-------------------------------mall--------------------------------------------
+const mallController = require('./../controllers/admin/mall');
+
 /*添加分类接口*/
 router.post(`/mall/category/add`, auth, mallController.categoryAdd);
 /*获取分类列表接口*/
@@ -33,8 +33,17 @@ router.get(`/mall/category/list`, auth, mallController.categoryList);
 router.post(`/mall/category/editor`, auth, mallController.categoryEditor);
 /*删除分类接口*/
 router.post(`/mall/category/delete`, auth, mallController.categoryDelete);
+
 /*添加商品接口*/
 router.post(`/mall/goods/add`,auth,mallController.goodsAdd);
+/*获取商品列表*/
+router.get(`/mall/goods/list`,auth,mallController.goodsList);
+/*获取商品信息*/
+router.get(`/mall/goods/detail`,auth,mallController.getDetail);
+/*更新商品详情*/
+router.post(`/mall/goods/update`,auth,mallController.updateDetail);
+/*商品上下架*/
+router.post(`/mall/goods/upOrDown`,auth,mallController.upOrDown);
 
 
 

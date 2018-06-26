@@ -9,7 +9,12 @@ const UpKey = mongoose.model('UpKey');
 *  limit:int
 */
 exports.categoryAdd = async function (ctx) {
-    const { methods, validator } = ctx;
+
+    const {
+        methods,
+        validator
+    } = ctx;
+
     const {
         categoryName,
         limit
@@ -41,18 +46,26 @@ exports.categoryAdd = async function (ctx) {
 
     try {
         const has = !!await Category.getItemByName(categoryName);
+
         if (has) {
             return ctx.body = methods.format({
                 code: 500,
                 message: `该分类已存在！`
             });
         }
+
         const onlyIndex = await UpKey.createKey(`mallCategory`);
-        const category = await Category.createCategory({
+        let category = await Category.createCategory({
             categoryName: categoryName,
             limit: limit,
             _index: onlyIndex
         });
+
+        category = {
+            ...category.getItem(),
+            ...category.formatTime()
+        };
+
         return ctx.body = methods.format({
             code: 200,
             data: category,
@@ -120,10 +133,20 @@ exports.categoryList = async function (ctx) {
         });
         const pageTotal = Math.ceil(total / pageSize);
         const resultList = await Category.splitPage(page, pageSize, searchKey);
+
+        const list = resultList.map((item) => {
+            const curItem = item.getItem();
+            const formatTimes = item.formatTime();
+            return {
+                ...curItem,
+                ...formatTimes
+            }
+        });
+
         ctx.body = methods.format({
             code: 200,
             data: {
-                list: resultList,
+                list: list,
                 page,
                 pageSize,
                 pageTotal
@@ -179,10 +202,16 @@ exports.categoryEditor = async function (ctx) {
         });
     }
     try {
-        const item = await Category.updateCategory(categoryId, {
+        let item = await Category.updateCategory(categoryId, {
             categoryName,
             limit
         });
+
+        item = {
+            ...item.getItem(),
+            ...item.formatTime()
+        };
+
         ctx.body = methods.format({
             code: 200,
             data: item,
@@ -243,6 +272,90 @@ exports.categoryDelete = async function (ctx) {
     }
 };
 
+//-------------------------------------------------------------
+const vailCommon = (validator, fields) => {
+    const {
+        categoryId,
+        goodsName,
+        price,
+        stock,
+        liveStart,
+        liveEnd,
+        cover,
+        banners,
+        desc,
+        limit
+    } = fields;
+
+    return validator({
+        categoryId: {
+            value: categoryId,
+            rule: {
+                required: true
+            }
+        },
+        goodsName: {
+            value: goodsName,
+            rule: {
+                required: true
+            }
+        },
+        limit: {
+            value: limit,
+            rule: {
+                required: true,
+                number: true
+            }
+        },
+        price: {
+            value: price,
+            rule: {
+                required: true,
+                number: true
+            }
+        },
+        stock: {
+            value: stock,
+            rule: {
+                required: true,
+                number: true
+            }
+        },
+        liveStart: {
+            value: liveStart,
+            rule: {
+                required: true,
+                isDate: true
+            }
+        },
+        liveEnd: {
+            value: liveEnd,
+            rule: {
+                required: true,
+                isDate: true
+            }
+        },
+        cover: {
+            value: cover,
+            rule: {
+                required: true
+            }
+        },
+        banners: {
+            value: banners,
+            rule: {
+                required: true
+            }
+        },
+        desc: {
+            value: desc,
+            rule: {
+                required: true
+            }
+        }
+    });
+};
+
 /*
 *  添加商品
 *  categoryId string
@@ -254,13 +367,29 @@ exports.categoryDelete = async function (ctx) {
 *  cover string
 *  banners array
 *  desc string
+*  limit number
 */
 
-exports.goodsAdd = async function ( ctx ) {
+exports.goodsAdd = async function (ctx) {
     const {
         methods,
         validator
     } = ctx;
+
+    const params = methods.getPara();
+
+    const message = vailCommon(
+        validator,
+        params
+    );
+
+    if (!!message) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: message
+        })
+    }
+
     const {
         categoryId,
         goodsName,
@@ -270,77 +399,12 @@ exports.goodsAdd = async function ( ctx ) {
         liveEnd,
         cover,
         banners,
-        desc
-    } = methods.getPara();
+        desc,
+        limit
+    } = params;
 
-    const message = validator({
-        categoryId:{
-            value:categoryId,
-            rule:{
-                required:true
-            }
-        },
-        goodsName:{
-            value:goodsName,
-            rule:{
-                required:true
-            }
-        },
-        price:{
-            value:price,
-            rule:{
-                required:true,
-                number:true
-            }
-        },
-        stock:{
-            value:stock,
-            rule:{
-                required:true,
-                number:true
-            }
-        },
-        liveStart:{
-            value:liveStart,
-            rule:{
-                required:true,
-                isDate:true
-            }
-        },
-        liveEnd:{
-            value:liveEnd,
-            rule:{
-                required:true,
-                isDate:true
-            }
-        },
-        cover:{
-            value:cover,
-            rule:{
-                required:true
-            }
-        },
-        banners:{
-            value:banners,
-            rule:{
-                required:true
-            }
-        },
-        desc:{
-            value:desc,
-            rule:{
-                required:true
-            }
-        }
-    });
-    if(!!message) {
-        return ctx.body = methods.format({
-            code:500,
-            message:message
-        })
-    }
     try {
-        await MallGoods.createGoods(categoryId,{
+        await MallGoods.createGoods(categoryId, {
             goodsName,
             price,
             stock,
@@ -348,17 +412,18 @@ exports.goodsAdd = async function ( ctx ) {
             liveEnd,
             cover,
             banners,
-            desc
+            desc,
+            limit
         });
         return ctx.body = methods.format({
-            code:200,
-            message:'保存成功！'
+            code: 200,
+            message: '保存成功！'
         })
     }
     catch (e) {
         return ctx.body = methods.format({
-            code:500,
-            message:`${e}`
+            code: 500,
+            message: `${e}`
         })
     }
 };
@@ -367,50 +432,268 @@ exports.goodsAdd = async function ( ctx ) {
 *  获取商品列表
 *  page number
 *  pageSize number
-*  keyWords string
+*  filters object
 */
 
-exports.goodsList = ctx => {
+exports.goodsList = async function (ctx) {
     const {
         methods,
         validator
     } = ctx;
-    const {
-       page,
-       pageSize,
-       keyWords
+
+    let {
+        page,
+        pageSize,
+        categoryId,
+        goodsName,
     } = methods.getPara();
 
     const message = validator({
-        page:{
-            value:page,
-            rule:{
-                required:true,
-                number:true
+        page: {
+            value: page,
+            rule: {
+                required: true,
+                number: true
             }
         },
-        pageSize:{
-            value:pageSize,
-            rule:{
-                required:true,
-                number:true
-            }
-        },
-        keyWords:{
-            value:keyWords,
-            rule:{
-                required:true
+        pageSize: {
+            value: pageSize,
+            rule: {
+                required: true,
+                number: true
             }
         }
     });
 
-    if(!!message) {
-        ctx.body =  methods.format({
-            code:500,
-            message:message
+    if (!!message) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: message
         })
     }
 
+    page = ~~page;
+    pageSize = ~~pageSize;
+
+    const searchKey = {
+        goodsName: {
+            $regex: new RegExp(goodsName, 'i')
+        }
+    };
+
+    if (categoryId) {
+        searchKey[`categoryId`] = categoryId;
+    }
+
+    try {
+        const total = await MallGoods.count({
+            _status: 1,
+            ...searchKey
+        });
+
+        const pageTotal = Math.ceil(total / pageSize);
+
+        let resultList = await MallGoods.splitPage(page, pageSize, searchKey);
+
+        resultList = resultList.map(item => {
+            const newItem = item.getItem();
+            return {
+                ...newItem,
+                ...item.formatTime(),
+            }
+        });
+
+        ctx.body = methods.format({
+            data: {
+                list: resultList,
+                page,
+                pageSize,
+                pageTotal
+            }
+        })
+    }
+    catch (err) {
+        ctx.body = methods.format({
+            code: 500,
+            message: `${err}`
+        })
+    }
+};
 
 
+/*
+*  获取单个商品信息
+*  id string
+*/
+exports.getDetail = async function (ctx) {
+    const {
+        methods,
+        validator
+    } = ctx;
+
+    const {
+        id
+    } = methods.getPara();
+
+    const message = validator({
+        id: {
+            value: id,
+            rule: {
+                required: true
+            }
+        },
+    });
+
+    if (!!message) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: message
+        })
+    }
+
+    try {
+        const goods = await MallGoods.getGoodsById(id);
+        return ctx.body = methods.format({
+            data: goods
+        });
+    }
+    catch (err) {
+        ctx.body = methods.format({
+            code: 500,
+            message: `${err}`
+        })
+    }
+};
+
+
+/*
+*  更新单个商品
+*  goodsId string,
+*  update object
+*/
+
+exports.updateDetail = async function (ctx) {
+
+    const {
+        methods,
+        validator
+    } = ctx;
+
+    const {
+        goodsId,
+        update
+    } = methods.getPara();
+
+    const fieldErr = validator({
+        goodsId: {
+            value: goodsId,
+            rule: {
+                required: true,
+                string: true
+            }
+        },
+        update: {
+            value: update,
+            rule: {
+                required: true,
+                object: true
+            }
+        }
+    });
+
+    if (fieldErr) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: fieldErr
+        });
+    }
+
+    const message = vailCommon(validator, update);
+
+    if (message) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: message
+        });
+    }
+
+    try {
+        await MallGoods.updateGoods(goodsId, update);
+        return ctx.body = methods.format({
+            code: 200,
+            message: `更新成功！`
+        });
+    } catch (err) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: `${err}`
+        });
+    }
+};
+
+
+/*
+*  商品上下架
+*  goodsId string
+*/
+
+exports.upOrDown = async function (ctx) {
+
+    const {
+        methods,
+        validator
+    } = ctx;
+
+    const {
+        goodsId
+    } = methods.getPara();
+
+    const fieldErr = validator({
+        goodsId: {
+            value: goodsId,
+            rule: {
+                required: true,
+                string: true
+            }
+        }
+    });
+
+    if (!!fieldErr) {
+        return methods.format({
+            code: 500,
+            message: fieldErr
+        })
+    }
+
+    try {
+        const curGoods = await MallGoods.getGoodsById(goodsId);
+        if (!curGoods) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `不存在该商品！`
+            })
+        }
+        const {
+            _status
+        } = curGoods;
+
+        let result = await MallGoods.updateGoods(goodsId, {
+            _status: _status === 1 ? 2 : 1
+        });
+
+        result = {
+            ...result.getItem(),
+            ...result.formatTime()
+        };
+
+        return ctx.body = methods.format({
+            data: result
+        })
+    }
+    catch (e) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: `${e}`
+        })
+    }
 };

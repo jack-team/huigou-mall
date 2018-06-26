@@ -11,9 +11,7 @@ app.keys = [`HUI GOU KEY`];
 require('./config/db.connect');
 
 //载入数据模型
-require('./util/walk')(path.join(__dirname, '/app/models'), [
-    'plugin'
-]);
+require('./util/walk')(path.join(__dirname, '/app/models'));
 
 app.use(koaBody());
 

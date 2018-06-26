@@ -1,5 +1,5 @@
 const methods = ctx => ({
-
+    //获取参数
     getPara() {
         const {request} = ctx;
         const {method, body, query} = request;
@@ -31,9 +31,11 @@ const methods = ctx => ({
     },
 
     baseUser() {
+
         const {
             userInfo = {}
         } = ctx.session;
+
         let {
             userName = null,
             avatar = null,
@@ -42,6 +44,7 @@ const methods = ctx => ({
             isAdmin = null,
             loginAt = null
         } = userInfo;
+
         return {
             userName,
             avatar,
@@ -55,7 +58,9 @@ const methods = ctx => ({
 
 module.exports = async (ctx, next) => {
     //是否在登录状态
-    const {userInfo} = ctx.session;
+    const {
+        userInfo
+    } = ctx.session;
     ctx.isLogin = !!userInfo;
 
     //将一些公用的方法放在 methods 里，全局可调用

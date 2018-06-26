@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
-const plugin = require('./plugin');
+const createModel = require('./../../../util/createModel');
 
-const UpKeySchema = new Schema({
+const UpKeySchema = createModel({
     //自增索引
     upIndex: {
         type: Number,
@@ -25,8 +25,6 @@ const UpKeySchema = new Schema({
     }
 });
 
-UpKeySchema.plugin(plugin);
-
 UpKeySchema.statics.setMethods({
     async createKey (id) {
         const options = {
@@ -34,13 +32,18 @@ UpKeySchema.statics.setMethods({
             upsert: true,
             returnNewDocument: true
         };
-        const { upIndex } = await this.findOneAndUpdate({id},
-            { $inc: { upIndex: 1 } }, options
+        const {
+            upIndex
+        } = await this.findOneAndUpdate({id}, {
+            $inc: { upIndex: 1 }
+            }, options
         );
         return upIndex;
     },
     async getKey(id) {
-        const { upIndex } = await this.findOne({id});
+        const {
+            upIndex
+        } = await this.findOne({id});
         return upIndex;
     }
 });

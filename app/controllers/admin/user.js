@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const AdminUser = mongoose.model('AdminUser');
 const md5 = require('./../../../util/md5');
 
+//验证账号和密码
 const vailPara = (ctx, para) => {
     const rules = {};
     Object.keys(para).forEach(key => {
@@ -86,7 +87,9 @@ exports.signUp = async function (ctx) {
 *  passWord:string
 */
 exports.signIn = async function (ctx) {
-    const {methods} = ctx;
+    const {
+        methods
+    } = ctx;
     const {
         userName,
         passWord
@@ -131,8 +134,14 @@ exports.signIn = async function (ctx) {
                 })
             )
         }
+
         //将用户存入会话
         const userInfo = methods.saveUser(loginUser);
+
+        //更新登录时间
+        loginUser.loginAt = Date.now();
+        await loginUser.save();
+
         return ctx.body = (
             methods.format({
                 code: 200,
@@ -156,7 +165,9 @@ exports.signIn = async function (ctx) {
 *  退出登录
 */
 exports.signOut = async function (ctx) {
-    const {methods} = ctx;
+    const {
+        methods
+    } = ctx;
     methods.deleteUser();
     return ctx.body = (
         methods.format({
@@ -173,8 +184,10 @@ exports.signOut = async function (ctx) {
 *  avatarUrl:string
 */
 exports.updateUser = async function (ctx) {
-    const {methods, validator} = ctx;
-
+    const {
+        methods,
+        validator
+    } = ctx;
     const {
         nickName,
         avatarUrl
@@ -244,7 +257,10 @@ exports.updateUser = async function (ctx) {
 *  newPassword:string
 */
 exports.updatePassword = async function (ctx) {
-    const {methods} = ctx;
+    const {
+        methods
+    } = ctx;
+
     const {
         oldPassword,
         newPassword
@@ -267,9 +283,11 @@ exports.updatePassword = async function (ctx) {
     } = methods.baseUser();
 
     try {
+
         const user = (
             await AdminUser.getUserByToken(accessToken)
         );
+
         if (md5(oldPassword) !== user.passWord) {
             return ctx.body = (
                 methods.format({
@@ -287,8 +305,10 @@ exports.updatePassword = async function (ctx) {
                 })
             );
         }
+
         user.passWord = md5(newPassword);
         await user.save();
+
         ctx.body = (
             methods.format({
                 code: 200,
