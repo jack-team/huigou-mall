@@ -79,7 +79,7 @@ CategorySchema.statics.setMethods({
                 subCategory: []
             }, fields),
         );
-        return await category.save().exec()
+        return await category.save();
     },
 
     //分页
