@@ -2,6 +2,7 @@ const Koa = require('koa');
 const path = require('path');
 const koaBody = require('koa-body');
 const render = require('koa-ejs');
+const koaStaticPlus = require('koa-static-plus');
 
 const app = new Koa();
 
@@ -31,6 +32,12 @@ app.use(common);
 const validator = require('./middleware/validator');
 app.use(validator);
 
+//设置静态路径
+app.use(koaStaticPlus(path.join(__dirname, '/public'), {
+    pathPrefix: '/static'
+}));
+
+
 //配置模板引擎
 render(app, {
     root: path.join(__dirname, 'app/views'),
@@ -41,7 +48,8 @@ render(app, {
 });
 
 //路由模块分发
-const router = require('./app/index');
+const router = require('./app/router');
+
 app.use(router.routes());
 
 app.listen(6868, () => {

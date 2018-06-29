@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const uuid = require('uuid');
-const createModel = require('../../../../util/createModel');
+const createModel = require('../../../util/createModel');
 
 //商品分类模块
 const CategorySchema = createModel({
@@ -85,8 +85,8 @@ CategorySchema.statics.setMethods({
     //分页
     async splitPage(page = 1, limit = 0, filters) {
         const filter = {
+            _status: 1,
             ...filters,
-            _status: 1
         };
         const skipNum = (page - 1) * limit;
         return await this.find(

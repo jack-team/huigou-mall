@@ -167,7 +167,10 @@ exports.categoryList = async function (ctx) {
 *  limit:int
 */
 exports.categoryEditor = async function (ctx) {
-    const {methods, validator} = ctx;
+    const {
+        methods,
+        validator
+    } = ctx;
     let {
         categoryId,
         categoryName,
@@ -202,22 +205,21 @@ exports.categoryEditor = async function (ctx) {
         });
     }
     try {
-        let item = await Category.updateCategory(categoryId, {
+        const updateItem = await Category.updateCategory(categoryId, {
             categoryName,
             limit
         });
-
-        item = {
-            ...item.getItem(),
-            ...item.formatTime()
+        const result = {
+            ...updateItem.getItem(),
+            ...updateItem.formatTime()
         };
-
         ctx.body = methods.format({
             code: 200,
-            data: item,
+            data: result,
             message: `修改成功！`
         });
-    } catch (err) {
+    }
+    catch (err) {
         let err_msg = err.errmsg;
         switch (err.code) {
             case 11000:
@@ -257,6 +259,18 @@ exports.categoryDelete = async function (ctx) {
         });
     }
     try {
+        const total = await MallGoods.count({
+            _status: 2,
+            categoryId: categoryId
+        });
+
+        if (total > 0) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `该分类下存在未下架商品！`
+            });
+        }
+
         await Category.updateCategory(categoryId, {
             _status: 0
         });
@@ -436,6 +450,7 @@ exports.goodsAdd = async function (ctx) {
 */
 
 exports.goodsList = async function (ctx) {
+
     const {
         methods,
         validator
@@ -472,40 +487,73 @@ exports.goodsList = async function (ctx) {
         })
     }
 
-    page = ~~page;
-    pageSize = ~~pageSize;
-
-    const searchKey = {
-        goodsName: {
-            $regex: new RegExp(goodsName, 'i')
-        }
+    //初始条件为状态不为删除
+    const searchCategoryKey = {
+        _status: 1
     };
 
-    if (categoryId) {
-        searchKey[`categoryId`] = categoryId;
-    }
+    //初始化搜索商品状态不为删除
+    const searchGoodsKey = {
+        _status: 1
+    };
+
+    page = parseInt(page);
+    pageSize = parseInt(pageSize);
 
     try {
-        const total = await MallGoods.count({
-            _status: 1,
-            ...searchKey
-        });
+        if (!!categoryId) {
+            searchCategoryKey[`categoryId`] = categoryId;
+        }
+
+        //先查询出可用分类
+        const someCategory = await Category.find(
+            searchCategoryKey
+        ).exec();
+
+        const categoryIds = someCategory.map(item => (
+            item.categoryId
+        ));
+
+        //如果没有查询到可用的分类,支付返回空数据
+        if (!categoryIds.length) {
+            return ctx.body = methods.format({
+                data: {
+                    list: [],
+                    page,
+                    pageSize,
+                    pageTotal: 0
+                }
+            })
+        }
+
+        if (!!goodsName) {
+            searchGoodsKey[`goodsName`] = {
+                $regex: new RegExp(goodsName, 'i')
+            }
+        }
+
+        searchGoodsKey[`categoryId`] = {
+            $in: categoryIds
+        };
+
+        const total = await MallGoods.count(
+            searchGoodsKey
+        );
 
         const pageTotal = Math.ceil(total / pageSize);
 
-        let resultList = await MallGoods.splitPage(page, pageSize, searchKey);
-
-        resultList = resultList.map(item => {
-            const newItem = item.getItem();
-            return {
-                ...newItem,
-                ...item.formatTime(),
-            }
-        });
+        const list = (await MallGoods.splitPage(
+            page,
+            pageSize,
+            searchGoodsKey
+        )).map(item => ({
+            ...item.getItem(),
+            ...item.formatTime(),
+        }));
 
         ctx.body = methods.format({
             data: {
-                list: resultList,
+                list: list,
                 page,
                 pageSize,
                 pageTotal
@@ -553,9 +601,17 @@ exports.getDetail = async function (ctx) {
 
     try {
         const goods = await MallGoods.getGoodsById(id);
-        return ctx.body = methods.format({
-            data: goods
-        });
+        if(!!goods) {
+            return ctx.body = methods.format({
+                data: goods
+            });
+        }
+        else {
+            return ctx.body = methods.format({
+                code:404,
+                message:`找不到该商品！`
+            });
+        }
     }
     catch (err) {
         ctx.body = methods.format({
@@ -573,7 +629,6 @@ exports.getDetail = async function (ctx) {
 */
 
 exports.updateDetail = async function (ctx) {
-
     const {
         methods,
         validator
@@ -618,6 +673,26 @@ exports.updateDetail = async function (ctx) {
     }
 
     try {
+        const item = await MallGoods.getGoodsById(goodsId);
+        if(!item) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `该商品不存在！`
+            });
+        }
+
+        const {
+            _status
+        } = item;
+
+        //如果是上架状态
+        if(_status === 2) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `该商品上架中，不能进行编辑！`
+            });
+        }
+
         await MallGoods.updateGoods(goodsId, update);
         return ctx.body = methods.format({
             code: 200,
@@ -697,3 +772,75 @@ exports.upOrDown = async function (ctx) {
         })
     }
 };
+
+
+/*
+*  删除商品
+*  goodsId string
+*/
+exports.deleteGoods = async function (ctx) {
+    const {
+        methods,
+        validator
+    } = ctx;
+
+    const {
+        goodsId
+    } = methods.getPara();
+
+    const fieldErr = validator({
+        goodsId: {
+            value: goodsId,
+            rule: {
+                required: true,
+                string: true
+            }
+        }
+    });
+
+    if (!!fieldErr) {
+        return ctx.body = methods.format({
+            code: 500,
+            message: fieldErr
+        })
+    }
+
+    try {
+        const findItem = await MallGoods.getGoodsById(goodsId);
+
+        if (!findItem) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `该商品不存在或已被删除！`
+            })
+        }
+
+        //判断商品是否下架
+        const {
+            _status
+        } = findItem;
+
+        if (_status > 1) {
+            return ctx.body = methods.format({
+                code: 500,
+                message: `请先下架该商品，再进行删除操作！`
+            })
+        }
+
+        await MallGoods.updateGoods(goodsId, {
+            _status: 0
+        });
+
+        ctx.body = methods.format({
+            code: 200,
+            message: `删除成功！`
+        })
+    }
+    catch (e) {
+        ctx.body = methods.format({
+            code: 500,
+            message: `${e}`
+        })
+    }
+};
+

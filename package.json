@@ -7,7 +7,7 @@
     "db": "pm2 start pm2/db.json",
     "dev": "pm2 start pm2/dev.json",
     "pro": "pm2 start pm2/pro.json",
-    "start":"node --inspect server.js"
+    "start": "node --inspect server.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "koa-ejs": "^4.1.1",
     "koa-router": "^7.4.0",
     "koa-session": "^5.8.1",
+    "koa-static-plus": "^0.1.1",
     "koa2-cors": "^2.0.5",
     "moment": "^2.22.1",
     "mongoose": "^5.0.15",

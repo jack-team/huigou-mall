@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const AdminUser = mongoose.model('AdminUser');
-const md5 = require('./../../../util/md5');
+const md5 = require('../../util/md5');
 
 //验证账号和密码
 const vailPara = (ctx, para) => {

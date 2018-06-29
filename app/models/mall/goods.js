@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const uuid = require('uuid');
-const createModel = require('../../../../util/createModel');
+const createModel = require('../../../util/createModel');
 
 const GoodSchema = createModel({
     //分类id

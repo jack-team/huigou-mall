@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
-const createModel = require('./../../../util/createModel');
+const createModel = require('../../util/createModel');
 
 const UpKeySchema = createModel({
     //自增索引

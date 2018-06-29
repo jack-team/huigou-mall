@@ -1,6 +1,6 @@
 const uuid = require('uuid');
 const mongoose = require('mongoose');
-const createModel = require('../../../util/createModel');
+const createModel = require('../../util/createModel');
 
 const UserModel = createModel({
     //用户名
