@@ -10,7 +10,7 @@ const index = async ctx => {
     const staticUrl = ``;
     const user = methods.baseUser();
     //获取静态路径
-    const assetPath = `${staticPath}/asset.json`;
+    const assetPath = `${staticPath}/site/asset.json`;
     const asset = fs.readFileSync(assetPath, `utf-8`);
 
     await ctx.render("admin", {
