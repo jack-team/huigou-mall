@@ -20,7 +20,7 @@ const index = async ctx => {
         }),
         static: {
             staticUrl: staticUrl,
-            ...asset
+            static:asset
         }
     })
 };
