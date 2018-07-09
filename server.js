@@ -35,7 +35,7 @@ app.use(validator);
 //设置静态路径
 app.use(koaStaticPlus(path.join(__dirname, '/public'), {
     pathPrefix: '/static',
-    maxage:6000
+    maxage:1000 * 60 * 60
 }));
 
 
