@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <% for (var css in static.css) { %>
-        <link href="<%= static.staticUrl+static.css[css] %>" rel="stylesheet">
-    <% } %>
+    <%for(var i = 0 ; i < static.css.length; i ++){%>
+    <link rel="stylesheet" href="<%=staticUrl+static.css[i]%>" />
+    <%}%>
     <title>会购后台管理系统</title>
     <script>
         window.initJsData = {
@@ -16,9 +16,9 @@
 </head>
 <body>
     <div id="root"></div>
-    <% for (var js in static.js) { %>
-    <script type="text/javascript" src="<%= static.staticUrl+static.js[js]%>"></script>
-    <% } %>
+    <%for(var j = 0 ; j < static.js.length; j ++){%>
+    <script src="<%=staticUrl+static.js[j]%>"></script>
+    <%}%>
 </body>
 </html>
 

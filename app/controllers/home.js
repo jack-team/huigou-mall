@@ -11,17 +11,16 @@ const index = async ctx => {
     const user = methods.baseUser();
     //获取静态路径
     const assetPath = `${staticPath}/site/asset.json`;
-    const asset = fs.readFileSync(assetPath, `utf-8`);
-
+    let asset = fs.readFileSync(assetPath, `utf-8`);
+    asset = !!asset ? JSON.parse(asset) : {};
+    console.log(asset)
     await ctx.render("admin", {
         user: JSON.stringify({
             ...user,
             isLogin
         }),
-        static: {
-            staticUrl: staticUrl,
-            static:asset
-        }
+        staticUrl: staticUrl,
+        static: asset
     })
 };
 
