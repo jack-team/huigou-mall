@@ -54,11 +54,17 @@ exports.categoryAdd = async function (ctx) {
             });
         }
 
+        const {
+            userName
+        } = methods.baseUser();
+
         const onlyIndex = await UpKey.createKey(`mallCategory`);
         let category = await Category.createCategory({
             categoryName: categoryName,
             limit: limit,
-            _index: onlyIndex
+            _index: onlyIndex,
+            createUser: userName,
+            updateUser: userName
         });
 
         category = {
@@ -205,9 +211,13 @@ exports.categoryEditor = async function (ctx) {
         });
     }
     try {
+        const {
+            userName
+        } = methods.baseUser();
         const updateItem = await Category.updateCategory(categoryId, {
             categoryName,
-            limit
+            limit,
+            updateUser: userName
         });
         const result = {
             ...updateItem.getItem(),
@@ -271,8 +281,13 @@ exports.categoryDelete = async function (ctx) {
             });
         }
 
+        const {
+            userName
+        } = methods.baseUser();
+
         await Category.updateCategory(categoryId, {
-            _status: 0
+            _status: 0,
+            updateUser: userName
         });
         ctx.body = methods.format({
             code: 200,
@@ -418,6 +433,9 @@ exports.goodsAdd = async function (ctx) {
     } = params;
 
     try {
+        const {
+            userName
+        } = methods.baseUser();
         await MallGoods.createGoods(categoryId, {
             goodsName,
             price,
@@ -427,7 +445,9 @@ exports.goodsAdd = async function (ctx) {
             cover,
             banners,
             desc,
-            limit
+            limit,
+            createUser: userName,
+            updateUser: userName
         });
         return ctx.body = methods.format({
             code: 200,
@@ -601,15 +621,15 @@ exports.getDetail = async function (ctx) {
 
     try {
         const goods = await MallGoods.getGoodsById(id);
-        if(!!goods) {
+        if (!!goods) {
             return ctx.body = methods.format({
                 data: goods
             });
         }
         else {
             return ctx.body = methods.format({
-                code:404,
-                message:`找不到该商品！`
+                code: 404,
+                message: `找不到该商品！`
             });
         }
     }
@@ -674,7 +694,7 @@ exports.updateDetail = async function (ctx) {
 
     try {
         const item = await MallGoods.getGoodsById(goodsId);
-        if(!item) {
+        if (!item) {
             return ctx.body = methods.format({
                 code: 500,
                 message: `该商品不存在！`
@@ -686,14 +706,21 @@ exports.updateDetail = async function (ctx) {
         } = item;
 
         //如果是上架状态
-        if(_status === 2) {
+        if (_status === 2) {
             return ctx.body = methods.format({
                 code: 500,
                 message: `该商品上架中，不能进行编辑！`
             });
         }
+        const {
+            userName
+        } = methods.baseUser();
 
-        await MallGoods.updateGoods(goodsId, update);
+        await MallGoods.updateGoods(goodsId, {
+            ...update,
+            updateUser: userName
+        });
+
         return ctx.body = methods.format({
             code: 200,
             message: `更新成功！`
@@ -752,8 +779,13 @@ exports.upOrDown = async function (ctx) {
             _status
         } = curGoods;
 
+        const {
+            userName
+        } = methods.baseUser();
+
         let result = await MallGoods.updateGoods(goodsId, {
-            _status: _status === 1 ? 2 : 1
+            _status: _status === 1 ? 2 : 1,
+            updateUser:userName
         });
 
         result = {
@@ -827,8 +859,13 @@ exports.deleteGoods = async function (ctx) {
             })
         }
 
+        const {
+            userName
+        } = methods.baseUser();
+
         await MallGoods.updateGoods(goodsId, {
-            _status: 0
+            _status: 0,
+            updateUser:userName
         });
 
         ctx.body = methods.format({

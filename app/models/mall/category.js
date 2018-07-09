@@ -24,6 +24,14 @@ const CategorySchema = createModel({
         type: Array,
         default: []
     },
+    //创建人存入username
+    createUser:{
+        type:String
+    },
+    //更新人存入username
+    updateUser:{
+        type:String
+    },
     //索引
     _index: {
         type: Number,
@@ -47,6 +55,8 @@ CategorySchema.statics.setMethods({
         subCategory: true,
         createAt: true,
         updateAt: true,
+        createUser:true,
+        updateUser:true,
         _id: false
     },
 

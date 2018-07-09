@@ -49,6 +49,14 @@ const GoodSchema = createModel({
         type: Number,
         default: 0
     },
+    //创建人存入username
+    createUser: {
+        type: String
+    },
+    //更新人存入username
+    updateUser: {
+        type: String
+    },
     //索引
     _index: {
         type: Number,
@@ -86,6 +94,8 @@ GoodSchema.statics.setMethods({
             banners: fields.banners,
             desc: fields.desc,
             limit: fields.limit,
+            updateUser: fields.updateUser,
+            createUser: fields.createUser,
             _index: onlyIndex,
             _status: 1
         });
@@ -97,7 +107,7 @@ GoodSchema.statics.setMethods({
         const filter = {
             ...filters,
             _status: {
-                $gt:0
+                $gt: 0
             }
         };
 
@@ -115,7 +125,7 @@ GoodSchema.statics.setMethods({
         const query = {
             goodsId: id,
             _status: {
-                $gt:0
+                $gt: 0
             }
         };
         return await this.findOne(
@@ -128,11 +138,11 @@ GoodSchema.statics.setMethods({
     async updateGoods(goodsId, updateFields) {
         const options = {
             new: true,
-            projection:this.resultFields
+            projection: this.resultFields
         };
         const query = {
             _status: {
-                $gt:0
+                $gt: 0
             },
             goodsId: goodsId
         };
