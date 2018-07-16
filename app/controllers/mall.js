@@ -467,6 +467,7 @@ exports.goodsAdd = async function (ctx) {
 *  page number
 *  pageSize number
 *  filters object
+*  status init
 */
 
 exports.goodsList = async function (ctx) {
@@ -481,6 +482,7 @@ exports.goodsList = async function (ctx) {
         pageSize,
         categoryId,
         goodsName,
+        status
     } = methods.getPara();
 
     const message = validator({
@@ -550,6 +552,10 @@ exports.goodsList = async function (ctx) {
             searchGoodsKey[`goodsName`] = {
                 $regex: new RegExp(goodsName, 'i')
             }
+        }
+
+        if(!!status && status > 0) {
+            searchGoodsKey[`_status`] = parseInt(status);
         }
 
         searchGoodsKey[`categoryId`] = {

@@ -105,10 +105,10 @@ GoodSchema.statics.setMethods({
     //分页
     async splitPage(page = 1, limit = 0, filters) {
         const filter = {
-            ...filters,
             _status: {
                 $gt: 0
-            }
+            },
+            ...filters
         };
 
         const skipNum = (page - 1) * limit;
