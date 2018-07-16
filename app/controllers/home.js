@@ -7,7 +7,8 @@ const index = async ctx => {
         methods,
         isLogin
     } = ctx;
-    const staticUrl = `http://localhost:8088/`;
+    // const staticUrl = `http://localhost:8088/`;
+    const staticUrl = ``;
     const user = methods.baseUser();
     //获取静态路径
     const assetPath = `${staticPath}/site/asset.json`;
