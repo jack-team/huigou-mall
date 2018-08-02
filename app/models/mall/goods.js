@@ -51,11 +51,13 @@ const GoodSchema = createModel({
     },
     //创建人存入username
     createUser: {
-        type: String
+        type: String,
+        ref:'AdminUser'
     },
     //更新人存入username
     updateUser: {
-        type: String
+        type: String,
+        ref:'AdminUser'
     },
     //索引
     _index: {

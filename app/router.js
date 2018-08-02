@@ -25,6 +25,9 @@ router.post(`/user/signOut`, loginAuth, userControllers.signOut);
 router.post(`/user/updateUser`, loginAuth, userControllers.updateUser);
 /*修改密码*/
 router.post(`/user/updatePassword`, loginAuth, userControllers.updatePassword);
+/*获取所有的用户*/
+router.get(`user/getUsers`,loginAuth,userControllers.getUsers);
+
 
 
 //-------------------------------mall--------------------------------------------

@@ -1,3 +1,5 @@
+const loginUserCache = {};
+
 const methods = ctx => ({
     //获取参数
     getPara() {
@@ -22,21 +24,41 @@ const methods = ctx => ({
     //将user信息存入会话中
     saveUser(user) {
         this.save('userInfo', user);
+        const {
+            accessToken
+        } = user;
+        loginUserCache[accessToken] = user;
         return this.baseUser();
     },
 
     //删除会话中的user信息
     deleteUser() {
+        const {
+            accessToken
+        } = this.baseUser();
+        //删除缓存
+        if (!!accessToken) {
+            delete loginUserCache[accessToken];
+        }
         ctx.session[`userInfo`] = undefined;
     },
 
     baseUser() {
-
-        const {
+        let {
             userInfo = {}
         } = ctx.session;
 
-        let {
+        if (!!userInfo.accessToken) {
+            const {
+                accessToken
+            } = userInfo;
+
+            if (!!loginUserCache[accessToken]) {
+                userInfo = loginUserCache[accessToken];
+            }
+        }
+
+        const {
             userName = null,
             avatar = null,
             accessToken = null,

@@ -1,5 +1,4 @@
 const moment = require('moment');
-
 const copy = json => JSON.parse(JSON.stringify(json));
 
 module.exports = {
@@ -43,7 +42,7 @@ module.exports = {
     mergeMethods: schema => {
         schema.methods.getItem = function () {
             const item = copy(this._doc);
-            if( item._status ) {
+            if (item._status) {
                 item.status = item._status;
                 delete item._status;
             }

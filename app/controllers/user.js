@@ -328,4 +328,53 @@ exports.updatePassword = async function (ctx) {
 };
 
 
+/*
+*  获取所有用户列表
+*/
+
+exports.getUsers = async function () {
+    const {
+        methods
+    } = ctx;
+
+    let {
+        page = 1,
+        pageSize = 20,
+    } = methods.getPara();
+
+    const message = validator({
+        page: {
+            value: page,
+            rule: {
+                required: true,
+                number: true
+            }
+        },
+        pageSize: {
+            value: pageSize,
+            rule: {
+                required: true,
+                number: true
+            }
+        }
+    });
+
+    if (!!message) {
+       return ctx.body = (
+            methods.format({
+                code: 500,
+                message: message
+            })
+        );
+    }
+
+    const total = await AdminUser.count({
+
+    });
+
+
+
+
+
+};
 

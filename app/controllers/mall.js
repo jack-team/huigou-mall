@@ -471,7 +471,6 @@ exports.goodsAdd = async function (ctx) {
 */
 
 exports.goodsList = async function (ctx) {
-
     const {
         methods,
         validator
@@ -509,18 +508,29 @@ exports.goodsList = async function (ctx) {
         })
     }
 
+    page = parseInt(page);
+    pageSize = parseInt(pageSize);
+
+
     //初始条件为状态不为删除
     const searchCategoryKey = {
-        _status: 1
+        _status: { $gt: 0 }
     };
 
     //初始化搜索商品状态不为删除
     const searchGoodsKey = {
-        _status: 1
+        _status: { $gt: 0 }
     };
 
-    page = parseInt(page);
-    pageSize = parseInt(pageSize);
+    if (!!goodsName) {
+        searchGoodsKey[`goodsName`] = {
+            $regex: new RegExp(goodsName, 'i')
+        }
+    }
+
+    if(!!status && status > 0) {
+        searchGoodsKey[`_status`] = parseInt(status);
+    }
 
     try {
         if (!!categoryId) {
@@ -536,7 +546,7 @@ exports.goodsList = async function (ctx) {
             item.categoryId
         ));
 
-        //如果没有查询到可用的分类,支付返回空数据
+        //如果没有查询到可用的分类,返回空数据
         if (!categoryIds.length) {
             return ctx.body = methods.format({
                 data: {
@@ -546,17 +556,7 @@ exports.goodsList = async function (ctx) {
                     pageTotal: 0
                 }
             })
-        }
-
-        if (!!goodsName) {
-            searchGoodsKey[`goodsName`] = {
-                $regex: new RegExp(goodsName, 'i')
-            }
-        }
-
-        if(!!status && status > 0) {
-            searchGoodsKey[`_status`] = parseInt(status);
-        }
+        };
 
         searchGoodsKey[`categoryId`] = {
             $in: categoryIds
@@ -568,13 +568,15 @@ exports.goodsList = async function (ctx) {
 
         const pageTotal = Math.ceil(total / pageSize);
 
-        const list = (await MallGoods.splitPage(
+        const result = await MallGoods.splitPage(
             page,
             pageSize,
             searchGoodsKey
-        )).map(item => ({
+        );
+
+        const list = result.map(item => ({
             ...item.getItem(),
-            ...item.formatTime(),
+            ...item.formatTime()
         }));
 
         ctx.body = methods.format({
